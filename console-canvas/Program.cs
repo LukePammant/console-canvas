@@ -3,28 +3,35 @@ using System.Threading.Tasks;
 
 namespace ConsoleCanvas
 {
-    partial class Program
-	{
-		const char light = '░';
-		const char medium = '▒';
-		const char dark = '▓';
-		const char black = '█';
-		const char blackHalfBottom = '▄';
-		const char blackHalfTop = '▀';
+    internal partial class Program
+    {
+        // http://www.asciitable.com/
+        private const char light = '░';
+        private const char medium = '▒';
+        private const char dark = '▓';
+        private const char black = '█';
+        private const char blackHalfLeft = '▌';
+        private const char blackHalfRight = '▐';
+        private const char blackHalfBottom = '▄';
+        private const char blackHalfTop = '▀';
 
-		public static event Action<ConsoleKeyInfo> OnKeyPress;
+        public static event Action<ConsoleKeyInfo> OnKeyPress;
 
-		public static bool IsGameRunning = true;
-		public static Canvas Canvas;
+        public static bool IsGameRunning = true;
+        public static Canvas Canvas;
 
-		//public static Player p1;
-		//public static Player p2;
+        //public static Player p1;
+        //public static Player p2;
 
-		static void Main(string[] args)
-		{
-			Canvas = new Canvas();
+        private static void Main(string[] args)
+        {
+            Canvas = new Canvas();
             Task.Run(StartInputLoop);
-            OnKeyPress += (key) => Canvas.AddDrawable(new BouncyBall(key.KeyChar, new Vector(0, 0), Canvas));
+
+            // Register even to spawn a character for each key press
+            // TODO: Only listen for key letter/number key presses. Arrow keys, etc. shouldn't spawn empty characters
+            OnKeyPress += (key) => 
+                Canvas.AddDrawable(new BouncyBall(key.KeyChar, new Vector(0, 0), Canvas));
 
             //p1 = new Player(ConsoleKey.UpArrow, ConsoleKey.DownArrow, Canvas.Width - 1);
             //p2 = new Player(ConsoleKey.W, ConsoleKey.S, 0);
@@ -32,31 +39,34 @@ namespace ConsoleCanvas
             //Canvas.AddDrawable(p2);
             //Canvas.AddDrawable(new PongBall('0', new Point((int)(Canvas.Width * .5), (int)(Canvas.Height * .5))));
 
-            //var x = 0;
-            //var y = 0;
-            //for(var i = 0; i < Canvas.Width; i++)
-            //{
-            //    x = (x + 2) % Canvas.Width;
-            //    y = (y + 1) % Canvas.Height;
-            //    if (y % 5 == 0)
-            //        Canvas.AddDrawable(new PhysicsBall('L', new Point(x, 0)));
-            //}
-
+            var line = new Line(new Vector(5, 5), new Vector(13, 30));
+            Canvas.AddDrawable(line);
+            OnKeyPress += (key) =>
+            {
+                if (key.Key == ConsoleKey.LeftArrow)
+                    line._end = line._end + new Vector(-1, 0);
+                if (key.Key == ConsoleKey.RightArrow)
+                    line._end = line._end + new Vector(1, 0);
+                if (key.Key == ConsoleKey.UpArrow)
+                    line._end = line._end + new Vector(0, -1);
+                if (key.Key == ConsoleKey.DownArrow)
+                    line._end = line._end + new Vector(0, 1);
+            };
 
             while (true) { }
-		}
+        }
 
-        //ConsoleKeyInfo _keyPressed = null;
-		static Task StartInputLoop()
-		{
-			while (true)
-			{
+        private static Task StartInputLoop()
+        {
+            while (true)
+            {
                 var keyPress = Console.ReadKey();
                 if (keyPress != null)
-				{
+                {
                     OnKeyPress?.Invoke(keyPress);
                 }
-			}
-		}
-	}
+            }
+        }
+
+    }
 }
